@@ -6,7 +6,6 @@ import requests
 app = Flask(__name__)
 API_KEY = dict(os.environ)["API_KEY"]
 bot = telebot.TeleBot(API_KEY)
-print(API_KEY)
 
 
 def broadcast_messages(list_of_groups, msg):
@@ -26,10 +25,13 @@ def hello_world():
 
 @app.route("/" + API_KEY, methods=["POST"])
 def getMessage():
-    bot.process_new_updates(
-        [telebot.types.Update.de_json(request.get_data().decode("utf-8"))]
-    )
-    return "!", 200
+    if request.headers.get("content-type") == "application/json":
+        json_string = request.get_data().decode("utf-8")
+        update = telebot.types.Update.de_json(json_string)
+        bot.process_new_updates([update])
+        return ""
+    else:
+        return "!", 200
 
 
 @bot.message_handler(commands=["start"])
@@ -47,3 +49,6 @@ def send_welcome(message):
     mf <category of mutual fund>
     """
     bot.reply_to(message, help_msg)
+
+
+bot.infinity_polling()
