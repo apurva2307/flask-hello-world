@@ -48,4 +48,4 @@ def send_welcome(message):
     bot.reply_to(message, help_msg)
 
 
-bot.infinity_polling()
+# bot.infinity_polling()
