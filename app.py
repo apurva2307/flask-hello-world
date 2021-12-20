@@ -15,22 +15,6 @@ def broadcast_messages(list_of_groups, msg):
         print(resp.text)
 
 
-@app.route("/")
-def hello_world():
-    bot.remove_webhook()
-    # bot.set_webhook(url="https://flask-app-pxeg.onrender.com/" + API_KEY)
-    broadcast_messages(["641792797"], "I Love you Jenu..")
-    return "Hello, World!"
-
-
-# @app.route("/" + API_KEY, methods=["POST"])
-# def getMessage():
-#     json_string = request.get_data().decode("utf-8")
-#     update = telebot.types.Update.de_json(json_string)
-#     bot.process_new_updates([update])
-#     return "!", 200
-
-
 @bot.message_handler(commands=["start"])
 def send_welcome(message):
     user_id = message.from_user.id
@@ -48,4 +32,18 @@ def send_welcome(message):
     bot.reply_to(message, help_msg)
 
 
-bot.infinity_polling()
+@app.route("/")
+def hello_world():
+    bot.remove_webhook()
+    bot.infinity_polling()
+    # bot.set_webhook(url="https://flask-app-pxeg.onrender.com/" + API_KEY)
+    broadcast_messages(["641792797"], "I Love you Jenu..")
+    return "Hello, World!"
+
+
+# @app.route("/" + API_KEY, methods=["POST"])
+# def getMessage():
+#     json_string = request.get_data().decode("utf-8")
+#     update = telebot.types.Update.de_json(json_string)
+#     bot.process_new_updates([update])
+#     return "!", 200
