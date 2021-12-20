@@ -1,11 +1,12 @@
 import telebot
 import os
-from flask import Flask
+from flask import Flask, request
 import requests
 
 app = Flask(__name__)
 API_KEY = dict(os.environ)["API_KEY"]
 bot = telebot.TeleBot(API_KEY)
+print(API_KEY)
 
 
 def broadcast_messages(list_of_groups, msg):
