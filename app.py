@@ -32,6 +32,20 @@ def send_welcome(message):
     bot.reply_to(message, help_msg)
 
 
+def ipo_request(message):
+    req = message.text.split()
+    if len(req) < 2 or req[0].lower() not in "ipo":
+        return False
+    else:
+        return True
+
+
+@bot.message_handler(func=ipo_request)
+def ipo(message):
+    req = message.text.split()[1]
+    bot.send_message(message.chat.id, "HI, welcome in world of IPOs..")
+
+
 @app.route("/")
 def hello_world():
     bot.remove_webhook()
