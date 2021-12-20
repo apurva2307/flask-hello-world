@@ -1,17 +1,34 @@
 import telebot
 import os
 from flask import Flask
+import requests
 
 app = Flask(__name__)
+API_KEY = dict(os.environ)["API_KEY"]
+bot = telebot.TeleBot(API_KEY)
+
+
+def broadcast_messages(list_of_groups, msg):
+    for group in list_of_groups:
+        to_url = f"https://api.telegram.org/bot{API_KEY}/sendMessage?chat_id={group}&text={msg}&parse_mode=HTML"
+        resp = requests.get(to_url)
+        print(resp.text)
 
 
 @app.route("/")
 def hello_world():
+    bot.remove_webhook()
+    bot.set_webhook(url="https://flask-app-pxeg.onrender.com/" + API_KEY)
+    broadcast_messages(["641792797"], "HI from bot")
     return "Hello, World!"
 
 
-API_KEY = dict(os.environ)["API_KEY"]
-bot = telebot.TeleBot(API_KEY)
+@app.route("/" + API_KEY, methods=["POST"])
+def getMessage():
+    bot.process_new_updates(
+        [telebot.types.Update.de_json(request.get_data().decode("utf-8"))]
+    )
+    return "!", 200
 
 
 @bot.message_handler(commands=["start"])
