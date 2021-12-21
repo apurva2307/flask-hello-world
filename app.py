@@ -49,7 +49,7 @@ def ipo(message):
 @app.route("/")
 def hello_world():
     bot.remove_webhook()
-    bot.set_webhook(url="https://flask-app-pxeg.onrender.com" + API_KEY)
+    bot.set_webhook(url="https://flask-app-pxeg.onrender.com/" + API_KEY)
     return "Hello, World!"
 
 
