@@ -15,35 +15,30 @@ def broadcast_messages(list_of_groups, msg):
         resp = requests.get(to_url)
 
 
-@bot.message_handler(commands=["start"])
-def send_welcome(message):
-    user_id = message.from_user.id
-    bot.reply_to(message, "Thanks for subscribing my service.")
+def parse_message(msg):
+    chat_id = msg["message"]["chat"]["id"]
+    txt = msg["message"]["text"]
+    return chat_id, txt
+
+def is_command(txt):
+    return txt[0] == "/"
 
 
-@bot.message_handler(commands=["help"])
-def send_welcome(message):
-    help_msg = """
-    Following are the commands which you can use:
-    /help
-    ipo <name of company>
-    mf <category of mutual fund>
-    """
-    bot.reply_to(message, help_msg)
-
-
-def ipo_request(message):
-    req = message.text.split()
-    if len(req) < 2 or req[0].lower() not in "ipo":
-        return False
+def execute_command(command, chat_id):
+    if command == "/ipo":
+        broadcast_messages([chat_id], "HI, welcome in world of IPOs..")
+    elif command == "/start":
+        broadcast_messages([chat_id], "Thanks for subscribing my service.")
+    elif command == "/help":
+        help_msg = """
+        Following are the commands which you can use:
+        /help
+        ipo <name of company>
+        mf <category of mutual fund>
+        """
+        broadcast_messages([chat_id], help_msg)
     else:
-        return True
-
-
-@bot.message_handler(func=ipo_request)
-def ipo(message):
-    req = message.text.split()[1]
-    bot.send_message(message.chat.id, "HI, welcome in world of IPOs..")
+        broadcast_messages([chat_id], "No such command exists..")
 
 
 @app.route("/")
@@ -59,19 +54,14 @@ def hello_appu():
     return "Hello Apurva"
 
 
-def parse_message(msg):
-    chat_id = msg["message"]["chat"]["id"]
-    txt = msg["message"]["text"]
-    return chat_id, txt
-
-
 @app.route("/" + API_KEY, methods=["POST"])
 def getMessage():
     msg = request.get_json()
     chat_id, txt = parse_message(msg)
-    print(chat_id)
-    print(txt)
-    broadcast_messages([chat_id], txt)
+    if is_command(txt):
+        execute_command(txt, chat_id)
+    else:
+        broadcast_messages([chat_id], txt)
     return "!", 200
 
 
