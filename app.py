@@ -128,7 +128,6 @@ def hello_appu():
 def getMessage():
     req = request.get_json()
     print("req>>", req)
-    print("content>", content)
     chat_id, txt, first_name, username = parse_request(req)
     if "text" in req["message"].keys():
         if txt == "/start" or txt == "/subscribe":
