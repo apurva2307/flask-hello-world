@@ -18,11 +18,25 @@ def broadcast_messages(list_of_groups, msg):
         return resp
 
 
-def parse_message(msg):
-    chat_id = msg["message"]["chat"]["id"]
-    txt = msg["message"]["text"].lower()
-    first_name = msg["message"]["chat"]["first_name"]
-    username = msg["message"]["chat"]["username"]
+def broadcast_items(list_of_groups, item, type):
+    for chat_id in list_of_groups:
+        to_url = f"{API_URL}/send{type}"
+        payload = {"chat_id": chat_id, "sticker": item}
+        resp = requests.post(to_url, json=payload)
+        return resp
+
+
+def parse_request(req):
+    chat_id = req["message"]["chat"]["id"]
+    if "text" in req["message"].keys():
+        txt = req["message"]["text"].lower()
+    elif "sticker" in req["message"].keys():
+        txt = req["message"]["sticker"]["file_id"]
+    elif "document" in req["message"].keys():
+        txt = req["message"]["document"]
+
+    first_name = req["message"]["chat"]["first_name"]
+    username = req["message"]["chat"]["username"]
     return chat_id, txt, first_name, username
 
 
@@ -101,18 +115,22 @@ def hello_appu():
 
 @app.route("/" + API_KEY, methods=["POST"])
 def getMessage():
-    msg = request.get_json()
-    chat_id, txt, first_name, username = parse_message(msg)
-    if txt == "/start" or txt == "/subscribe":
-        response = addToDatabase(chat_id, username, first_name).json()
-        broadcast_messages(["44114772"], json.dumps(response))
-        broadcast_messages(["44114772"], chat_id)
-        broadcast_messages(["44114772"], username)
-        broadcast_messages([chat_id], "Thanks for subscribing my service.")
-    elif is_command(txt):
-        execute_command(txt, chat_id)
-    else:
-        broadcast_messages([chat_id], txt)
+    req = request.get_json()
+    print("req>>", req)
+    chat_id, txt, first_name, username = parse_request(req)
+    if "text" in req["message"].keys():
+        if txt == "/start" or txt == "/subscribe":
+            response = addToDatabase(chat_id, username, first_name).json()
+            broadcast_messages(["44114772"], json.dumps(response))
+            broadcast_messages(["44114772"], chat_id)
+            broadcast_messages(["44114772"], username)
+            broadcast_messages([chat_id], "Thanks for subscribing my service.")
+        elif is_command(txt):
+            execute_command(txt, chat_id)
+        else:
+            broadcast_messages([chat_id], txt)
+    if "sticker" in req["message"].keys():
+        broadcast_items([chat_id], txt, "Sticker")
     return "!", 200
 
 
