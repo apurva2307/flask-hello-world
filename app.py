@@ -2,12 +2,13 @@ import os
 from flask import Flask, request
 import requests
 import json
-
+import keys
 
 app = Flask(__name__)
 API_KEY = dict(os.environ)["API_KEY"]
 API_URL = f"https://api.telegram.org/bot{API_KEY}"
 data_url = "https://e-commerce-api-apurva.herokuapp.com/api/v1/telebot"
+content = ""
 
 
 def broadcast_messages(list_of_groups, msg):
@@ -21,9 +22,14 @@ def broadcast_messages(list_of_groups, msg):
 def broadcast_items(list_of_groups, item, type):
     for chat_id in list_of_groups:
         to_url = f"{API_URL}/send{type}"
-        payload = {"chat_id": chat_id, "sticker": item}
+        if type == "Sticker":
+            payload = {"chat_id": chat_id, "sticker": item}
+        if type == "Photo":
+            payload = {"chat_id": chat_id, "photo": item}
+        if type == "Document":
+            payload = {"chat_id": chat_id, "document": item}
         resp = requests.post(to_url, json=payload)
-        return resp
+        return json.dumps(resp.json())
 
 
 def parse_request(req):
@@ -33,8 +39,9 @@ def parse_request(req):
     elif "sticker" in req["message"].keys():
         txt = req["message"]["sticker"]["file_id"]
     elif "document" in req["message"].keys():
-        txt = req["message"]["document"]
-
+        txt = req["message"]["document"]["file_id"]
+    elif "photo" in req["message"].keys():
+        txt = req["message"]["photo"][0]["file_id"]
     first_name = req["message"]["chat"]["first_name"]
     username = req["message"]["chat"]["username"]
     return chat_id, txt, first_name, username
@@ -63,12 +70,17 @@ def execute_command(command, chat_id):
         broadcast_messages([chat_id], "HI, welcome in world of IPOs..")
     elif command == "/help":
         help_msg = "<pre>Following are the options:</pre>"
-        print(help_msg)
         broadcast_messages([chat_id], help_msg)
+    elif (
+        command[:5].lower() == "/all "
+        and chat_id == 44114772
+        and command[5:8].lower() == "img"
+    ):
+        content = "img"
+        print(content)
     elif command[:5] == "/all " and chat_id == 44114772:
-        help_msg = command[5:]
-        print(help_msg)
-        broadcastToAll(help_msg)
+        msg = command[5:]
+        broadcastToAll(msg)
     else:
         broadcast_messages([chat_id], "No such command exists..")
 
@@ -80,7 +92,7 @@ def set_webhook():
     setWebhook = f"{API_URL}/setWebhook"
     options = {
         "url": webhook_url,
-        "allowed_updates": ["message"],
+        "allowed_updates": ["message", "channel_post"],
         "drop_pending_updates": True,
     }
     requests.post(setWebhook, json=options)
@@ -117,20 +129,28 @@ def hello_appu():
 def getMessage():
     req = request.get_json()
     print("req>>", req)
+    print("content>", content)
     chat_id, txt, first_name, username = parse_request(req)
-    if "text" in req["message"].keys():
-        if txt == "/start" or txt == "/subscribe":
-            response = addToDatabase(chat_id, username, first_name).json()
-            broadcast_messages(["44114772"], json.dumps(response))
-            broadcast_messages(["44114772"], chat_id)
-            broadcast_messages(["44114772"], username)
-            broadcast_messages([chat_id], "Thanks for subscribing my service.")
-        elif is_command(txt):
-            execute_command(txt, chat_id)
-        else:
-            broadcast_messages([chat_id], txt)
-    if "sticker" in req["message"].keys():
-        broadcast_items([chat_id], txt, "Sticker")
+    if content == "":
+        if "text" in req["message"].keys():
+            if txt == "/start" or txt == "/subscribe":
+                response = addToDatabase(chat_id, username, first_name).json()
+                broadcast_messages(["44114772"], json.dumps(response))
+                broadcast_messages(["44114772"], chat_id)
+                broadcast_messages(["44114772"], username)
+                broadcast_messages([chat_id], "Thanks for subscribing my service.")
+            elif is_command(txt):
+                execute_command(txt, chat_id)
+            else:
+                broadcast_messages([chat_id], txt)
+        if "sticker" in req["message"].keys():
+            broadcast_items([chat_id], txt, "Sticker")
+        if "photo" in req["message"].keys():
+            broadcast_items([chat_id], txt, "Photo")
+        if "document" in req["message"].keys():
+            broadcast_items([chat_id], txt, "Document")
+    elif content == "img":
+        broadcast_items([chat_id], txt, "Photo")
     return "!", 200
 
 
