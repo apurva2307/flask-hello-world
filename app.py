@@ -2,63 +2,14 @@ import os
 from flask import Flask, request
 import requests
 import json
+from helpers import sendFile, broadcast_messages, parse_request, broadcast_items
+from database import broadcastToAll, addToDatabase
+from decouple import config
 
-# import keys
 
 app = Flask(__name__)
-API_KEY = dict(os.environ)["API_KEY"]
+API_KEY = config("API_KEY")
 API_URL = f"https://api.telegram.org/bot{API_KEY}"
-data_url = "https://e-commerce-api-apurva.herokuapp.com/api/v1/telebot"
-
-
-def broadcast_messages(list_of_groups, msg):
-    for group in list_of_groups:
-        to_url = f"{API_URL}/sendMessage"
-        payload = {"chat_id": group, "text": msg, "parse_mode": "HTML"}
-        resp = requests.post(to_url, json=payload)
-        return resp
-
-
-def broadcast_items(list_of_groups, item, type):
-    for chat_id in list_of_groups:
-        to_url = f"{API_URL}/send{type}"
-        if type == "Sticker":
-            payload = {"chat_id": chat_id, "sticker": item}
-        if type == "Photo":
-            payload = {"chat_id": chat_id, "photo": item}
-        if type == "Document":
-            payload = {"chat_id": chat_id, "document": item}
-        resp = requests.post(to_url, json=payload)
-        return json.dumps(resp.json())
-
-
-def parse_request(req):
-    chat_id = req["message"]["chat"]["id"]
-    if "text" in req["message"].keys():
-        txt = req["message"]["text"].lower()
-    elif "sticker" in req["message"].keys():
-        txt = req["message"]["sticker"]["file_id"]
-    elif "document" in req["message"].keys():
-        txt = req["message"]["document"]["file_id"]
-    elif "photo" in req["message"].keys():
-        txt = req["message"]["photo"][0]["file_id"]
-    first_name = req["message"]["chat"]["first_name"]
-    username = req["message"]["chat"]["username"]
-    return chat_id, txt, first_name, username
-
-
-def broadcastToAll(msg):
-    usersURL = f"{data_url}/getAllUsers"
-    allUsers = requests.get(usersURL).json()
-    for user in allUsers["telegramUsers"]:
-        broadcast_messages([user["chat_id"]], msg)
-
-
-def addToDatabase(chat_id, username, first_name):
-    registerURL = f"{data_url}/register"
-    payload = {"chat_id": chat_id, "username": username, "first_name": first_name}
-    resp = requests.post(registerURL, json=payload)
-    return resp
 
 
 def is_command(txt):
@@ -145,10 +96,11 @@ def getMessage():
     if "photo" in req["message"].keys():
         broadcast_items([chat_id], txt, "Photo")
     if "document" in req["message"].keys():
+        sendFile(chat_id, "txt", "files/requirements.txt", "requirements.txt")
         broadcast_items([chat_id], txt, "Document")
     return "!", 200
 
 
-if dict(os.environ)["ENVIRON"] == "DEV":
+if config("ENVIRON") == "DEV":
     if __name__ == "__main__":
         app.run(host="0.0.0.0", port=5000)
