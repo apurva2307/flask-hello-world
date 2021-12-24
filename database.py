@@ -17,17 +17,29 @@ def addToDatabase(chat_id, username, first_name):
 
 def get_all_users():
     usersURL = f"{data_url}/getAllUsers"
-    allUsers = requests.get(usersURL).json()
-    return allUsers["telegramUsers"]
+    headers = {"token": config("TOKEN")}
+    allUsers = requests.get(usersURL, headers=headers).json()
+    if "telegramUsers" in allUsers.keys():
+        return allUsers["telegramUsers"]
+    else:
+        return json.dumps(allUsers)
 
 
 def get_single_user(chat_id):
     userURL = f"{data_url}/{chat_id}"
-    user = requests.get(userURL).json()
-    return user["telegramUser"]
+    headers = {"token": config("TOKEN")}
+    user = requests.get(userURL, headers=headers).json()
+    if "telegramUser" in user.keys():
+        return user["telegramUser"]
+    else:
+        return json.dumps(user)
 
 
 def delete_single_user(chat_id):
     userURL = f"{data_url}/{chat_id}"
-    user = requests.delete(userURL).json()
-    return user["msg"]
+    headers = {"token": config("TOKEN")}
+    user = requests.delete(userURL, headers=headers).json()
+    if "msg" in user.keys():
+        return user["msg"]
+    else:
+        return json.dumps(user)

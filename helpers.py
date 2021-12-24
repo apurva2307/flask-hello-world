@@ -95,6 +95,7 @@ def execute_command(command, chat_id):
             pickle.dump(data, imgFile)
     elif command[:5] == "/all " and chat_id == 44114772:
         msg = command[5:]
+        print("HI")
         broadcastToAll(msg)
     else:
         broadcast_msg(chat_id, "No such command exists..")
@@ -103,4 +104,4 @@ def execute_command(command, chat_id):
 def broadcastToAll(msg):
     users = get_all_users()
     for user in users:
-        broadcast_msg(user["chat_id"], msg)
+        broadcast_msg(user["chatId"], msg)

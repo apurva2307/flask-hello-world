@@ -7,9 +7,8 @@ from helpers import (
     broadcast_items,
     execute_command,
     is_command,
-    addToDatabase,
-    get_all_users,
 )
+from database import get_all_users, addToDatabase
 from decouple import config
 
 
@@ -60,17 +59,15 @@ def getMessage():
     if os.path.isfile("img.pkl"):
         users = get_all_users()
         for user in users:
-            print(type(user["chat_id"]))
-            print(user["chat_id"])
-            broadcast_items(user["chat_id"], txt, "Photo")
+            broadcast_items(user["chatId"], txt, "Photo")
         os.remove("img.pkl")
     if "text" in req["message"].keys():
         if txt == "/start" or txt == "/subscribe":
             response = addToDatabase(chat_id, username, first_name)
+            broadcast_msg(chat_id, "Thanks for subscribing my service.")
             broadcast_msg(44114772, response)
             broadcast_msg(44114772, chat_id)
             broadcast_msg(44114772, f"@{username}")
-            broadcast_msg(chat_id, "Thanks for subscribing my service.")
         elif is_command(txt):
             execute_command(txt, chat_id)
         else:
