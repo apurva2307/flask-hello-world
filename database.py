@@ -1,22 +1,33 @@
-import requests
-import os
-import json
+import requests, json
 from decouple import config
-from helpers import broadcast_messages
 
-# data_url = dict(os.environ)["DATA_URL"]
 data_url = config("DATA_URL")
 
 
 def addToDatabase(chat_id, username, first_name):
     registerURL = f"{data_url}/register"
-    payload = {"chat_id": chat_id, "username": username, "first_name": first_name}
+    payload = {
+        "chatId": chat_id,
+        "username": username,
+        "first_name": first_name,
+    }
     resp = requests.post(registerURL, json=payload)
-    return resp
+    return json.dumps(resp.json())
 
 
-def broadcastToAll(msg):
+def get_all_users():
     usersURL = f"{data_url}/getAllUsers"
     allUsers = requests.get(usersURL).json()
-    for user in allUsers["telegramUsers"]:
-        broadcast_messages([user["chat_id"]], msg)
+    return allUsers["telegramUsers"]
+
+
+def get_single_user(chat_id):
+    userURL = f"{data_url}/{chat_id}"
+    user = requests.get(userURL).json()
+    return user["telegramUser"]
+
+
+def delete_single_user(chat_id):
+    userURL = f"{data_url}/{chat_id}"
+    user = requests.delete(userURL).json()
+    return user["msg"]
