@@ -1,0 +1,10 @@
+{
+    "version": 2,
+    "name": "invest_bot",
+    "builds": [
+      { "src": "app.py", "use": "@vercel/python" }
+    ],
+    "routes": [
+      { "src": "/(.*)", "dest": "/" }
+    ]
+  }

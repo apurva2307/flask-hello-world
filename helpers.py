@@ -103,5 +103,9 @@ def execute_command(command, chat_id):
 
 def broadcastToAll(msg):
     users = get_all_users()
-    for user in users:
-        broadcast_msg(user["chatId"], msg)
+    try:
+        for user in users:
+            broadcast_msg(user["chatId"], msg)
+    except:
+        broadcast_msg(44114772, "Some error ocurred.")
+
