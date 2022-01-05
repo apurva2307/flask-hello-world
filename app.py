@@ -48,7 +48,7 @@ def get_webhook_info():
 
 @app.route("/")
 def hello_world():
-    return "Hello, World!"
+    return "Hello, Invest Advice Bot"
 
 
 @app.route("/" + API_KEY, methods=["POST"])
