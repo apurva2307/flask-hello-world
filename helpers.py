@@ -39,6 +39,13 @@ def broadcast_msg(chat_id, msg):
     return json.dumps(resp.json())
 
 
+def broadcast_to_admin(msg):
+    to_url = f"{API_URL}/sendMessage"
+    payload = {"chat_id": 44114772, "text": msg, "parse_mode": "HTML"}
+    resp = requests.post(to_url, json=payload)
+    return json.dumps(resp.json())
+
+
 def broadcast_items(chat_id, item, type):
     to_url = f"{API_URL}/send{type}"
     if type == "Sticker":
@@ -108,4 +115,3 @@ def broadcastToAll(msg):
             broadcast_msg(user["chatId"], msg)
     except:
         broadcast_msg(44114772, "Some error ocurred.")
-

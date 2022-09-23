@@ -1,6 +1,8 @@
 from flask import Flask, request
 import requests, pickle, os, json
 from helpers import (
+    broadcast_to_admin,
+    broadcastToAll,
     sendFile,
     broadcast_msg,
     parse_request,
@@ -71,7 +73,10 @@ def getMessage():
         elif is_command(txt):
             execute_command(txt, chat_id)
         else:
-            broadcast_msg(chat_id, txt)
+            if chat_id == 44114772:
+                broadcastToAll(txt)
+            else:
+                broadcast_to_admin(f"{txt}\nsent by {first_name}\n@{username}")
     # if "sticker" in req["message"].keys():
     #     broadcast_items(chat_id, txt, "Sticker")
     # if "photo" in req["message"].keys():
