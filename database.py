@@ -1,7 +1,22 @@
-import requests, json
+import requests, json, jwt, datetime
 from decouple import config
+from dateutil import tz
 
 data_url = config("DATA_URL")
+token = config("TOKEN")
+
+
+def gen_token(token):
+    encodedToken = jwt.encode(
+        {
+            "name": "shailendra",
+            "exp": datetime.datetime.now(tz=tz.gettz("Asia/Kolkata"))
+            + datetime.timedelta(seconds=300),
+        },
+        token,
+        algorithm="HS256",
+    )
+    return encodedToken
 
 
 def addToDatabase(chat_id, username, first_name):
@@ -12,12 +27,13 @@ def addToDatabase(chat_id, username, first_name):
         "first_name": first_name,
     }
     resp = requests.post(registerURL, json=payload)
-    return json.dumps(resp.json())
+    return resp.json()
 
 
 def get_all_users():
     usersURL = f"{data_url}/getAllUsers"
-    headers = {"token": config("TOKEN")}
+    encodedToken = gen_token(token)
+    headers = {"token": encodedToken}
     allUsers = requests.get(usersURL, headers=headers).json()
     if "telegramUsers" in allUsers.keys():
         return allUsers["telegramUsers"]

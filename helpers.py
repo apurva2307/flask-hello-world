@@ -1,8 +1,7 @@
-import requests
+import requests, json, pickle
 from decouple import config
-import json
-import pickle
 from database import get_all_users
+from services import get_stk_recos
 
 API_KEY = config("API_KEY")
 API_URL = f"https://api.telegram.org/bot{API_KEY}"
@@ -61,8 +60,8 @@ def broadcast_items(chat_id, item, type):
 def parse_request(req):
     chat_id = req["message"]["chat"]["id"]
     if "text" in req["message"].keys():
-        txt = req["message"]["text"].lower()
-        pickle.dumps(txt)
+        txt = req["message"]["text"]
+        # pickle.dumps(txt)
     elif "sticker" in req["message"].keys():
         txt = req["message"]["sticker"]["file_id"]
     elif "document" in req["message"].keys():
@@ -79,8 +78,12 @@ def is_command(txt):
 
 
 def execute_command(command, chat_id):
+    command = command.lower()
     if command == "/ipo":
         broadcast_msg(chat_id, "HI, welcome in world of IPOs..")
+    elif command == "/reco":
+        reco = get_stk_recos()
+        broadcast_msg(chat_id, reco)
     elif command == "/help":
         help_msg = "<pre>Following are the options:</pre>"
         broadcast_msg(chat_id, help_msg)
@@ -102,7 +105,6 @@ def execute_command(command, chat_id):
             pickle.dump(data, imgFile)
     elif command[:5] == "/all " and chat_id == 44114772:
         msg = command[5:]
-        print("HI")
         broadcastToAll(msg)
     else:
         broadcast_msg(chat_id, "No such command exists..")
@@ -112,6 +114,7 @@ def broadcastToAll(msg):
     users = get_all_users()
     try:
         for user in users:
-            broadcast_msg(user["chatId"], msg)
+            if user["chatId"] != "44114772":
+                broadcast_msg(user["chatId"], msg)
     except:
         broadcast_msg(44114772, "Some error ocurred.")

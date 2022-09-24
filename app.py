@@ -63,13 +63,21 @@ def getMessage():
         for user in users:
             broadcast_items(user["chatId"], txt, "Photo")
         os.remove("img.pkl")
+    if os.path.isfile("file.pkl"):
+        users = get_all_users()
+        for user in users:
+            broadcast_items(user["chatId"], txt, "Document")
+        os.remove("file.pkl")
     if "text" in req["message"].keys():
         if txt == "/start" or txt == "/subscribe":
             response = addToDatabase(chat_id, username, first_name)
-            broadcast_msg(chat_id, "Thanks for subscribing my service.")
-            broadcast_msg(44114772, response)
-            broadcast_msg(44114772, chat_id)
-            broadcast_msg(44114772, f"@{username}")
+            if "already exists" in response["msg"]:
+                broadcast_msg(chat_id, "You have already subscribed to this bot.")
+            else:
+                broadcast_msg(chat_id, "Thanks for subscribing this bot.")
+                broadcast_msg(44114772, json.dumps(response))
+                broadcast_msg(44114772, chat_id)
+                broadcast_msg(44114772, f"@{username}")
         elif is_command(txt):
             execute_command(txt, chat_id)
         else:
@@ -89,4 +97,4 @@ def getMessage():
 
 if config("ENVIRON") == "DEV":
     if __name__ == "__main__":
-        app.run(host="0.0.0.0", port=5000)
+        app.run(host="0.0.0.0", port=5000, debug=True)
